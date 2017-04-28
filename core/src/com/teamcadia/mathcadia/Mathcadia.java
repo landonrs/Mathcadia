@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Mathcadia extends ApplicationAdapter {
+	public final String TAG = "mathTag";
 	SpriteBatch batch;
 	Texture img;
 	
@@ -14,6 +15,7 @@ public class Mathcadia extends ApplicationAdapter {
 	public void create () {
 		batch = new SpriteBatch();
 		img = new Texture("badlogic.jpg");
+		Gdx.app.log(TAG, "Creating game");
 	}
 
 	@Override
@@ -29,5 +31,6 @@ public class Mathcadia extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		img.dispose();
+		Gdx.app.log(TAG,"Disposing game");
 	}
 }

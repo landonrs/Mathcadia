@@ -1,4 +1,4 @@
-package Screens;
+package com.teamcadia.mathcadia.Screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;

@@ -1,6 +1,6 @@
 package com.teamcadia.mathcadia;
 
-import Screens.MainMenuScreen;
+import com.teamcadia.mathcadia.Screens.MainMenuScreen;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;

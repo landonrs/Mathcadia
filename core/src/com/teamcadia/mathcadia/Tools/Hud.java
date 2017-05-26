@@ -1,5 +1,6 @@
 package com.teamcadia.mathcadia.Tools;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
@@ -9,6 +10,9 @@ public class Hud implements Disposable {
 
 
 
+    public Hud(SpriteBatch batch){
+
+    }
 
     @Override
     public void dispose() {

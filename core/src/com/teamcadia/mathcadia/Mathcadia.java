@@ -9,17 +9,24 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.teamcadia.mathcadia.Screens.MapMovementScreen;
 
 public class Mathcadia extends Game {
 	public final String TAG = "mathTag";
 	public SpriteBatch batch;
-	Texture img;
-	
+
+    public static final int V_WIDTH = 640;
+    public static final int V_HEIGHT = 320;
+    public static final float PPM = 100;
+
+    //bits for collision detection
+	public static final short WALL_BIT = 1;
+	public static final short PLAYER_BIT = 2;
+
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		img = new Texture("badlogic.jpg");
-		this.setScreen(new MainMenuScreen(this));
+		this.setScreen(new MapMovementScreen(this));
 		Gdx.app.log(TAG, "Creating game");
 	}
 
@@ -31,7 +38,6 @@ public class Mathcadia extends Game {
 	@Override
 	public void dispose () {
 		batch.dispose();
-		img.dispose();
 		Gdx.app.log(TAG,"Disposing game");
 	}
 }

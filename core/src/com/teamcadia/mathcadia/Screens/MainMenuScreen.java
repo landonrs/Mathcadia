@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.teamcadia.mathcadia.Mathcadia;
 
 /**
@@ -18,7 +19,7 @@ import com.teamcadia.mathcadia.Mathcadia;
 public class MainMenuScreen implements Screen {
 
     private Mathcadia game;
-    private FitViewport viewport;
+    private StretchViewport viewport;
     private OrthographicCamera camera;
     private Stage stage;
     private Texture img;
@@ -26,9 +27,14 @@ public class MainMenuScreen implements Screen {
     public MainMenuScreen(Mathcadia mathcadia){
         this.game = mathcadia;
         camera = new OrthographicCamera();
-        img = new Texture(Gdx.files.internal("background/test_title_screen.jpg"));
+        viewport = new StretchViewport(Mathcadia.V_WIDTH, Mathcadia.V_HEIGHT,camera);
+        viewport.apply();
+        img = new Texture(Gdx.files.internal("background/title.jpg"));
 
-        camera.setToOrtho(false,800,480);
+
+        camera.position.set(viewport.getWorldWidth()/2, viewport.getWorldHeight()/2, 0);
+        camera.update();
+
     }
 
     @Override
@@ -54,6 +60,7 @@ public class MainMenuScreen implements Screen {
     @Override
     public void resize(int width, int height) {
 
+        viewport.update(width,height);
     }
 
     @Override

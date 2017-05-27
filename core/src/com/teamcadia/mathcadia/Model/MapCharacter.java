@@ -1,6 +1,7 @@
 package com.teamcadia.mathcadia.Model;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -15,6 +16,7 @@ public class MapCharacter extends Sprite {
 
     public World world;
     public Body b2Body;
+    public MapMovementScreen screen;
 
     private float stateTimer;
 
@@ -23,6 +25,7 @@ public class MapCharacter extends Sprite {
 
     public MapCharacter(MapMovementScreen screen){
 
+        this.screen = screen;
         world = screen.getWorld();
 
         Texture playerImage = new Texture(Gdx.files.internal("map_characters/chrom.png"));
@@ -30,7 +33,7 @@ public class MapCharacter extends Sprite {
 
         defineCharacter();
 
-        setBounds(0,0, 1, 1);
+        setBounds(0,0, 32, 32);
         setRegion(stand);
 
     }
@@ -42,7 +45,7 @@ public class MapCharacter extends Sprite {
 
     public void defineCharacter() {
         BodyDef bdef = new BodyDef();
-        bdef.position.set(63/2f, 33/2f);
+        bdef.position.set(screen.getCamera().position.x, screen.getCamera().position.y);
         bdef.type = BodyDef.BodyType.DynamicBody;
         bdef.gravityScale = 0;
         b2Body = world.createBody(bdef);

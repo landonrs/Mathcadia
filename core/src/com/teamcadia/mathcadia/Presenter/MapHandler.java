@@ -53,6 +53,11 @@ public class MapHandler {
     }
 
     public static Vector2 movePlayerToNextRoom(int doorNum, ArrayList<Rectangle> doors){
+
+        //haven't written code for last south door yet, so it does nothing
+        if(doorNum == 7)
+            return null;
+
         Vector2 playerPosition;
         //keep track of the proper array index with this variable
         int doorIndex = doorNum - 1;

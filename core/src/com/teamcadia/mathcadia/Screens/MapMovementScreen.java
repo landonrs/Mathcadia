@@ -117,7 +117,9 @@ public class MapMovementScreen implements Screen {
 
     private void movePlayer(int doorTransition) {
         Vector2 playerPosition = MapHandler.movePlayerToNextRoom(doorTransition, doors);
+        if(playerPosition != null)
         player.b2Body.setTransform(playerPosition,0);
+        //reset the door until we walk through another
         Mathcadia.getMaps().setDoorTransition(0);
     }
 

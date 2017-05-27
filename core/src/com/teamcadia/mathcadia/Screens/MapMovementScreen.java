@@ -76,9 +76,18 @@ public class MapMovementScreen implements Screen {
         map = new TmxMapLoader().load("background/MathcadiaTest_Outside.tmx");
         mapRenderer = new OrthogonalTiledMapRenderer(map);
 
+        TiledMapTileLayer mapLayer = (TiledMapTileLayer) map.getLayers().get(0);
+        int tileSize = (int) mapLayer.getTileWidth();
+
+        mapWidth = mapLayer.getWidth() * tileSize;
+        mapHeight = mapLayer.getHeight() * tileSize;
+
         camera = new OrthographicCamera();
-        camera.setToOrtho(false,w,h);
+        camera.setToOrtho(false, mapWidth,mapHeight);
+        float x = mapWidth / camera.viewportWidth;
+        camera.zoom = x;
         camera.update();
+
 
 
         worldCreator = new MapObjectCreator(this);
@@ -99,8 +108,8 @@ public class MapMovementScreen implements Screen {
 
 
 
-        Gdx.app.log(TAG, "map bounds width: " + mapRenderer.getViewBounds().getWidth());
-        Gdx.app.log(TAG, "map bounds height: " + mapRenderer.getViewBounds().getHeight());
+        //Gdx.app.log(TAG, "map bounds width: " + mapRenderer.getViewBounds().getWidth());
+        //Gdx.app.log(TAG, "map bounds height: " + mapRenderer.getViewBounds().getHeight());
         camera.update();
 
 
@@ -140,6 +149,7 @@ public class MapMovementScreen implements Screen {
         Gdx.gl.glClearColor(0,0, 1,0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+
         mapRenderer.setView(camera);
         mapRenderer.render();
 
@@ -158,8 +168,10 @@ public class MapMovementScreen implements Screen {
     @Override
     public void resize(int width, int height) {
 
-        camera.viewportWidth = width;                 // Viewport of 30 units!
-        camera.viewportHeight = height; // Lets keep things in proportion.
+        camera.viewportWidth = width;
+        camera.viewportHeight = height;
+        float x = mapWidth / camera.viewportWidth;
+        camera.zoom = x;
         camera.update();
     }
 

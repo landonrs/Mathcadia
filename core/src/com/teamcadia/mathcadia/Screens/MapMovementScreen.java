@@ -10,17 +10,19 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.teamcadia.mathcadia.Mathcadia;
 import com.teamcadia.mathcadia.Model.MapCharacter;
 import com.teamcadia.mathcadia.Presenter.MapHandler;
-import com.teamcadia.mathcadia.Tools.CollisionChecker;
+import com.teamcadia.mathcadia.Tools.WorldContactListener;
 import com.teamcadia.mathcadia.Tools.Hud;
 import com.teamcadia.mathcadia.Tools.MapObjectCreator;
+
+import java.util.ArrayList;
 
 /**
  * Created by Richardo on 5/22/2017.
@@ -49,6 +51,9 @@ public class MapMovementScreen implements Screen {
     //this gives a visual representation of the collision boxes
     private Box2DDebugRenderer b2dr;
     private MapObjectCreator worldCreator;
+
+    //these rectangles keep track of door locations so we can change rooms
+    private ArrayList<Rectangle> doors;
 
     private int mapWidth;
     private int mapHeight;
@@ -89,12 +94,9 @@ public class MapMovementScreen implements Screen {
 
 
         worldCreator = new MapObjectCreator(this);
-        world.setContactListener(new CollisionChecker());
+        world.setContactListener(new WorldContactListener());
 
         player = new MapCharacter(this);
-
-
-
 
     }
 
@@ -102,15 +104,21 @@ public class MapMovementScreen implements Screen {
         handelInput(dt);
 
         world.step(1/60f, 6, 2);
+
+        camera.update();
+
+        if(Mathcadia.getMaps().getDoorTransition() > 0){
+            movePlayer(Mathcadia.getMaps().getDoorTransition());
+        }
         player.update(dt);
 
 
+    }
 
-        //Gdx.app.log(TAG, "map bounds width: " + mapRenderer.getViewBounds().getWidth());
-        //Gdx.app.log(TAG, "map bounds height: " + mapRenderer.getViewBounds().getHeight());
-        camera.update();
-
-
+    private void movePlayer(int doorTransition) {
+        Vector2 playerPosition = MapHandler.movePlayerToNextRoom(doorTransition, doors);
+        player.b2Body.setTransform(playerPosition,0);
+        Mathcadia.getMaps().setDoorTransition(0);
     }
 
     private void handelInput(float dt){
@@ -211,4 +219,7 @@ public class MapMovementScreen implements Screen {
     public OrthographicCamera getCamera() {
         return camera;
     }
+
+    public ArrayList<Rectangle> getDoors() { return doors; }
+    public void setDoors(ArrayList<Rectangle> doors) { this.doors = doors; }
 }

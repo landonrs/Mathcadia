@@ -48,6 +48,8 @@ public class MapCharacter extends Sprite {
         BodyDef bdef = new BodyDef();
 
         bdef.position.set(MapHandler.getPlayerPosition().x, MapHandler.getPlayerPosition().y);
+        Gdx.app.log(Mathcadia.TAG, "Player x: "  + bdef.position.x);
+        Gdx.app.log(Mathcadia.TAG, "Player y: "   + bdef.position.y);
         bdef.type = BodyDef.BodyType.DynamicBody;
         bdef.gravityScale = 0;
         b2Body = world.createBody(bdef);
@@ -55,9 +57,11 @@ public class MapCharacter extends Sprite {
         FixtureDef fdef = new FixtureDef();
         CircleShape shape = new CircleShape();
         shape.setRadius(.5f);
+        fdef.filter.categoryBits = Mathcadia.PLAYER_BIT;
+        fdef.filter.maskBits = Mathcadia.DOOR_BIT | Mathcadia.WALL_BIT;
 
         fdef.shape = shape;
-        b2Body.createFixture(fdef);
+        b2Body.createFixture(fdef).setUserData("player");
 
     }
 }

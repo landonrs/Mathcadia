@@ -13,10 +13,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.teamcadia.mathcadia.Screens.MapMovementScreen;
 
 public class Mathcadia extends Game {
-	public final String TAG = "mathTag";
+	public static final String TAG = "mathTag";
 	public SpriteBatch batch;
 	//for holding our tiled map info
 	private static WorldMap maps;
+
+	public static final short PLAYER_BIT = 1;
+	public static final short DOOR_BIT = 2;
+	public static final short WALL_BIT = 4;
+	public static final short SIGN_BIT = 8;
+	public static final short NPC_BIT = 16;
 
 
 	@Override

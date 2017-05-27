@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.physics.box2d.*;
 import com.teamcadia.mathcadia.Mathcadia;
+import com.teamcadia.mathcadia.Presenter.MapHandler;
 import com.teamcadia.mathcadia.Screens.MapMovementScreen;
 
 /**
@@ -45,7 +46,8 @@ public class MapCharacter extends Sprite {
 
     public void defineCharacter() {
         BodyDef bdef = new BodyDef();
-        bdef.position.set(screen.getCamera().position.x, screen.getCamera().position.y);
+
+        bdef.position.set(MapHandler.getPlayerPosition().x, MapHandler.getPlayerPosition().y);
         bdef.type = BodyDef.BodyType.DynamicBody;
         bdef.gravityScale = 0;
         b2Body = world.createBody(bdef);
@@ -53,8 +55,6 @@ public class MapCharacter extends Sprite {
         FixtureDef fdef = new FixtureDef();
         CircleShape shape = new CircleShape();
         shape.setRadius(.5f);
-        fdef.filter.categoryBits = Mathcadia.PLAYER_BIT;
-        fdef.filter.maskBits = Mathcadia.WALL_BIT;
 
         fdef.shape = shape;
         b2Body.createFixture(fdef);

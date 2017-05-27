@@ -17,6 +17,7 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.teamcadia.mathcadia.Mathcadia;
 import com.teamcadia.mathcadia.Model.MapCharacter;
+import com.teamcadia.mathcadia.Presenter.MapHandler;
 import com.teamcadia.mathcadia.Tools.CollisionChecker;
 import com.teamcadia.mathcadia.Tools.Hud;
 import com.teamcadia.mathcadia.Tools.MapObjectCreator;
@@ -70,10 +71,7 @@ public class MapMovementScreen implements Screen {
         float h = Gdx.graphics.getHeight();
 
 
-
-
-
-        map = new TmxMapLoader().load("background/MathcadiaTest_Outside.tmx");
+        map = MapHandler.loadMap(1);
         mapRenderer = new OrthogonalTiledMapRenderer(map);
 
         TiledMapTileLayer mapLayer = (TiledMapTileLayer) map.getLayers().get(0);
@@ -84,7 +82,7 @@ public class MapMovementScreen implements Screen {
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, mapWidth,mapHeight);
-        float x = mapWidth / camera.viewportWidth;
+        float x = mapWidth / w;
         camera.zoom = x;
         camera.update();
 
@@ -117,12 +115,12 @@ public class MapMovementScreen implements Screen {
 
     private void handelInput(float dt){
 
-        if(Gdx.input.isKeyPressed(Input.Keys.UP) && player.b2Body.getLinearVelocity().y <= 35f) {
+        if(Gdx.input.isKeyPressed(Input.Keys.UP)) {
             player.b2Body.applyLinearImpulse(new Vector2(0, 10f), player.b2Body.getWorldCenter(), true);
 
            //Gdx.app.log(TAG, "moving up" );
         }
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && player.b2Body.getLinearVelocity().x <= 35f){
+        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
             player.b2Body.applyLinearImpulse(new Vector2(10f, 0), player.b2Body.getWorldCenter(), true);
 
         }
@@ -146,7 +144,7 @@ public class MapMovementScreen implements Screen {
 
         update(delta);
 
-        Gdx.gl.glClearColor(0,0, 1,0);
+        Gdx.gl.glClearColor(0,0, 0,0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 
@@ -168,9 +166,12 @@ public class MapMovementScreen implements Screen {
     @Override
     public void resize(int width, int height) {
 
+        float x;
+        int previousWidth = (int) camera.viewportWidth;
+
         camera.viewportWidth = width;
         camera.viewportHeight = height;
-        float x = mapWidth / camera.viewportWidth;
+        x = mapWidth / camera.viewportWidth;
         camera.zoom = x;
         camera.update();
     }

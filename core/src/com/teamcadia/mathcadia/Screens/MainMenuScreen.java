@@ -27,8 +27,8 @@ public class MainMenuScreen implements Screen {
     public MainMenuScreen(Mathcadia mathcadia){
         this.game = mathcadia;
         camera = new OrthographicCamera();
-        viewport = new StretchViewport(Mathcadia.V_WIDTH, Mathcadia.V_HEIGHT,camera);
-        viewport.apply();
+        // viewport = new StretchViewport(Mathcadia.V_WIDTH, Mathcadia.V_HEIGHT,camera);
+        // viewport.apply();
         img = new Texture(Gdx.files.internal("background/title.jpg"));
 
 

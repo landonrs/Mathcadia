@@ -32,7 +32,7 @@ public class MapObjectCreator {
         Body body;
 
         //create wall bodies/fixtures
-        for(MapObject object: map.getLayers().get(3).getObjects().getByType(RectangleMapObject.class)){
+        for(MapObject object: map.getLayers().get("Collisions").getObjects().getByType(RectangleMapObject.class)){
 
                 Rectangle rect = ((RectangleMapObject) object).getRectangle();
 

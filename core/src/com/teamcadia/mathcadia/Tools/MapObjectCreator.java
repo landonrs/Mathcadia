@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.teamcadia.mathcadia.Mathcadia;
+import com.teamcadia.mathcadia.Presenter.MapHandler;
 import com.teamcadia.mathcadia.Screens.MapMovementScreen;
 
 import java.util.ArrayList;
@@ -43,15 +44,18 @@ public class MapObjectCreator {
         FixtureDef fdef = new FixtureDef();
         Body body;
 
-        //create wall bodies/fixtures
-        for(MapObject object: map.getLayers().get("Collisions").getObjects().getByType(RectangleMapObject.class)){
+        //we now check each map to make sure they have the necessary layers
+        if(map.getLayers().get("Collisions") != null) {
+
+            //create wall bodies/fixtures
+            for (MapObject object : map.getLayers().get("Collisions").getObjects().getByType(RectangleMapObject.class)) {
 
                 Rectangle rect = ((RectangleMapObject) object).getRectangle();
 
 
                 //create body objects for player to collide with
                 bdef.type = BodyDef.BodyType.StaticBody;
-                bdef.position.set((rect.getX()+ rect.getWidth() / 2), (rect.getY() + rect.getHeight() / 2));
+                bdef.position.set((rect.getX() + rect.getWidth() / 2), (rect.getY() + rect.getHeight() / 2));
                 body = world.createBody(bdef);
 
                 shape.setAsBox(rect.getWidth() / 2, rect.getHeight() / 2);
@@ -59,85 +63,92 @@ public class MapObjectCreator {
                 fdef.filter.categoryBits = Mathcadia.WALL_BIT;
                 body.createFixture(fdef);
 
-        }
-
-        //now add the doors to our world
-        int doorNumber = 1;
-        for(MapObject object: map.getLayers().get("Doors").getObjects().getByType(RectangleMapObject.class)){
-
-
-            Rectangle rect = ((RectangleMapObject) object).getRectangle();
-
-
-
-            //create body objects for player to collide with
-            bdef.type = BodyDef.BodyType.KinematicBody;
-            bdef.position.set((rect.getX()+ rect.getWidth() / 2), (rect.getY() + rect.getHeight() / 2));
-
-            // change the rectangle's position to match the map
-            rect.setPosition(bdef.position.x, bdef.position.y);
-
-            //add the door to our list so we can move between them later
-            doors.add(rect);
-
-            Gdx.app.log(TAG, "bdef X: " + bdef.position.x);
-            Gdx.app.log(TAG, "bdef " + doorNumber + " Y: " + bdef.position.y);
-            Gdx.app.log(TAG, "door X: " + rect.getX());
-            Gdx.app.log(TAG, "door " + doorNumber + " Y: " + rect.getY());
-
-            body = world.createBody(bdef);
-
-            shape.setAsBox(rect.getWidth() / 2, rect.getHeight() / 2);
-            fdef.shape = shape;
-            fdef.filter.categoryBits = Mathcadia.DOOR_BIT;
-            fdef.filter.maskBits = Mathcadia.PLAYER_BIT;
-
-            //here we label the current door with a number for future reference
-            body.createFixture(fdef).setUserData(doorNumber);
-            doorNumber++;
+            }
 
         }
 
-        //update our current doors list
-        screen.setDoors(doors);
-
-        //now add Room rectangles
-        ArrayList<Rectangle> rooms = new ArrayList<Rectangle>();
-        int roomNum = 1;
-        for(MapObject object: map.getLayers().get("Rooms").getObjects().getByType(RectangleMapObject.class)){
+        if(map.getLayers().get("Doors") != null) {
+            //now add the doors to our world
+            int doorNumber = 1;
+            for (MapObject object : map.getLayers().get("Doors").getObjects().getByType(RectangleMapObject.class)) {
 
 
-            Rectangle rect = ((RectangleMapObject) object).getRectangle();
-
-            //create body objects for player to collide with
-            bdef.type = BodyDef.BodyType.KinematicBody;
-            bdef.position.set((rect.getX()+ rect.getWidth() / 2), (rect.getY() + rect.getHeight() / 2));
-
-            // change the rectangle's position to match the map
-            rect.setPosition(bdef.position.x, bdef.position.y);
-
-            //add the door to our list so we can move between them later
-            rooms.add(rect);
-
-            Gdx.app.log(TAG, "bdef X: " + bdef.position.x);
-            Gdx.app.log(TAG, "bdef " + roomNum + " Y: " + bdef.position.y);
-            Gdx.app.log(TAG, "room X: " + rect.getX());
-            Gdx.app.log(TAG, "room " + roomNum + " Y: " + rect.getY());
-
-            body = world.createBody(bdef);
-
-            shape.setAsBox(rect.getWidth() / 2, rect.getHeight() / 2);
-            fdef.shape = shape;
-            fdef.filter.maskBits = 0;
+                Rectangle rect = ((RectangleMapObject) object).getRectangle();
 
 
-            //here we label the current door with a number for future reference
-            body.createFixture(fdef).setUserData(roomNum);
+                //create body objects for player to collide with
+                bdef.type = BodyDef.BodyType.KinematicBody;
+                bdef.position.set((rect.getX() + rect.getWidth() / 2), (rect.getY() + rect.getHeight() / 2));
 
-            roomNum++;
+                // change the rectangle's position to match the map
+                rect.setPosition(bdef.position.x, bdef.position.y);
 
+                //add the door to our list so we can move between them later
+                doors.add(rect);
+
+                /*Gdx.app.log(TAG, "bdef X: " + bdef.position.x);
+                Gdx.app.log(TAG, "bdef " + doorNumber + " Y: " + bdef.position.y);
+                Gdx.app.log(TAG, "door X: " + rect.getX());
+                Gdx.app.log(TAG, "door " + doorNumber + " Y: " + rect.getY());*/
+
+                body = world.createBody(bdef);
+
+                shape.setAsBox(rect.getWidth() / 2, rect.getHeight() / 2);
+                fdef.shape = shape;
+                fdef.filter.categoryBits = Mathcadia.DOOR_BIT;
+                fdef.filter.maskBits = Mathcadia.PLAYER_BIT;
+
+                //here we label the current door with a number for future reference
+                body.createFixture(fdef).setUserData(doorNumber);
+                doorNumber++;
+
+            }
+
+            //update our current doors list
+            MapHandler.setDoors(doors);
         }
-        Mathcadia.getMaps().setRooms(rooms);
+
+        if(map.getLayers().get("Rooms") != null) {
+
+            //now add Room rectangles
+            ArrayList<Rectangle> rooms = new ArrayList<Rectangle>();
+            int roomNum = 1;
+            for (MapObject object : map.getLayers().get("Rooms").getObjects().getByType(RectangleMapObject.class)) {
+
+
+                Rectangle rect = ((RectangleMapObject) object).getRectangle();
+
+                //create body objects for player to collide with
+                bdef.type = BodyDef.BodyType.KinematicBody;
+                bdef.position.set((rect.getX() + rect.getWidth() / 2), (rect.getY() + rect.getHeight() / 2));
+
+                // change the rectangle's position to match the map
+                rect.setPosition(bdef.position.x, bdef.position.y);
+
+                //add the door to our list so we can move between them later
+                rooms.add(rect);
+
+                /*Gdx.app.log(TAG, "bdef X: " + bdef.position.x);
+                Gdx.app.log(TAG, "bdef " + roomNum + " Y: " + bdef.position.y);
+                Gdx.app.log(TAG, "room X: " + rect.getX());
+                Gdx.app.log(TAG, "room " + roomNum + " Y: " + rect.getY());*/
+
+                body = world.createBody(bdef);
+
+                shape.setAsBox(rect.getWidth() / 2, rect.getHeight() / 2);
+                fdef.shape = shape;
+                fdef.filter.maskBits = 0;
+
+
+                //here we label the current door with a number for future reference
+                body.createFixture(fdef).setUserData(roomNum);
+
+                roomNum++;
+
+            }
+            Mathcadia.getMaps().setRooms(rooms);
+            Mathcadia.getMaps().setCurrentRoom(rooms.get(0));
+        }
 
     }
 }

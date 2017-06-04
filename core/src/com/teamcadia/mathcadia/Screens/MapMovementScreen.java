@@ -12,8 +12,11 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.teamcadia.mathcadia.Mathcadia;
 import com.teamcadia.mathcadia.Model.MapCharacter;
@@ -21,8 +24,10 @@ import com.teamcadia.mathcadia.Presenter.MapHandler;
 import com.teamcadia.mathcadia.Tools.WorldContactListener;
 import com.teamcadia.mathcadia.Tools.Hud;
 import com.teamcadia.mathcadia.Tools.MapObjectCreator;
+import sun.security.jgss.GSSCaller;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Created by Richardo on 5/22/2017.
@@ -36,7 +41,7 @@ public class MapMovementScreen implements Screen {
     private TextureAtlas atlas;
 
     private OrthographicCamera camera;
-    private Viewport gamePort;
+    private StretchViewport gamePort;
     private Hud hud;
 
     private TmxMapLoader mapLoader;
@@ -55,8 +60,11 @@ public class MapMovementScreen implements Screen {
     //these rectangles keep track of door locations so we can change rooms
     private ArrayList<Rectangle> doors;
 
-    private int mapWidth;
-    private int mapHeight;
+    private float mapWidth;
+    private float mapHeight;
+
+    private float w;
+    private float h;
 
 
     public MapMovementScreen(Mathcadia game){
@@ -76,27 +84,37 @@ public class MapMovementScreen implements Screen {
         float h = Gdx.graphics.getHeight();
 
 
-        map = MapHandler.loadMap(1);
+        //load the map
+        map = MapHandler.loadMap(1, false);
         mapRenderer = new OrthogonalTiledMapRenderer(map);
 
-        TiledMapTileLayer mapLayer = (TiledMapTileLayer) map.getLayers().get(0);
-        int tileSize = (int) mapLayer.getTileWidth();
 
-        mapWidth = mapLayer.getWidth() * tileSize;
-        mapHeight = mapLayer.getHeight() * tileSize;
-
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, mapWidth,mapHeight);
-        float x = mapWidth / w;
-        camera.zoom = x;
-        camera.update();
-
-
-
+        //create the objects in tbe map
         worldCreator = new MapObjectCreator(this);
         world.setContactListener(new WorldContactListener());
 
+        mapWidth = Mathcadia.getMaps().getCurrentRoom().getWidth();
+        mapHeight = Mathcadia.getMaps().getCurrentRoom().getHeight();
+        Gdx.app.log(TAG, "Map width: " + mapWidth);
+        Gdx.app.log(TAG, "Map height: " + mapHeight);
+
+
+        camera = new OrthographicCamera();
+        camera.position.set(MapHandler.getCameraPosition());
+
+
+        camera.zoom = MapHandler.getCameraZoom(mapWidth, mapHeight);
+        Gdx.app.log(TAG, "Original Zoom " + camera.zoom);
+        camera.update();
+
+
         player = new MapCharacter(this);
+
+        //initialize the variables for our MapHandler
+        MapHandler.setVariables();
+
+        gamePort = new StretchViewport(1000,510,camera);
+        gamePort.apply();
 
     }
 
@@ -105,18 +123,83 @@ public class MapMovementScreen implements Screen {
 
         world.step(1/60f, 6, 2);
 
-        camera.update();
 
         if(Mathcadia.getMaps().getDoorTransition() > 0){
-            movePlayer(Mathcadia.getMaps().getDoorTransition());
+            int doorNum = Mathcadia.getMaps().getDoorTransition();
+            // if the door is equal to the last in the array, load next map
+            if(doorNum == MapHandler.getDoors().size() || doorNum == 0) {
+                constructMap();
+            }
+            else {
+                changeRooms(doorNum);
+            }
         }
         player.update(dt);
 
 
     }
 
+    private void changeRooms(int doorNum){
+        movePlayer(doorNum);
+        //move the camera and update its position
+        camera.position.set(MapHandler.moveCamera(doorNum));
+        mapWidth = Mathcadia.getMaps().getCurrentRoom().getWidth();
+        mapHeight = Mathcadia.getMaps().getCurrentRoom().getHeight();
+        //resize the camera for the new room size
+        camera.zoom = MapHandler.getCameraZoom(mapWidth, mapHeight);
+        camera.update();
+    }
+
+    private void constructMap(){
+        boolean previousMap = false;
+
+        if(Mathcadia.getMaps().getDoorTransition() == 1){
+        //load the inside map
+            previousMap = true;
+            map = MapHandler.loadMap(1, previousMap);
+            mapRenderer = new OrthogonalTiledMapRenderer(map);
+            Mathcadia.getMaps().setDoorTransition(7);
+
+        }
+        else {
+            //store the previous room index if we move back into the previous map
+            MapHandler.previousRoomIndex = Mathcadia.getMaps().getRooms().indexOf(Mathcadia.getMaps().getCurrentRoom());
+            //load the outside map
+            map = MapHandler.loadMap(0, previousMap);
+            mapRenderer = new OrthogonalTiledMapRenderer(map);
+            Mathcadia.getMaps().setDoorTransition(0);
+        }
+
+        //erase the objects from the previous map, set up our new objects
+        world.dispose();
+        world = new World(new Vector2(0, 0), true);
+
+        worldCreator = new MapObjectCreator(this);
+        world.setContactListener(new WorldContactListener());
+        MapHandler.setVariables();
+
+        if(previousMap){
+            //if moving into the previous map, get the index of the last room we were in and set it as the current room
+            Mathcadia.getMaps().setCurrentRoom(Mathcadia.getMaps().getRooms().get(MapHandler.previousRoomIndex));
+        }
+        else {
+            camera.setToOrtho(false, 1007, 526);
+            camera.zoom = (float) 1.007;
+        }
+
+        Gdx.app.log(TAG,"Loading map");
+
+        //add player to new map
+        player.defineCharacter();
+
+        if(previousMap){
+            changeRooms(Mathcadia.getMaps().getDoorTransition());
+        }
+        Mathcadia.getMaps().setDoorTransition(0);
+    }
+
     private void movePlayer(int doorTransition) {
-        Vector2 playerPosition = MapHandler.movePlayerToNextRoom(doorTransition, doors);
+        Vector2 playerPosition = MapHandler.movePlayerToNextRoom(doorTransition);
         if(playerPosition != null)
         player.b2Body.setTransform(playerPosition,0);
         //reset the door until we walk through another
@@ -124,6 +207,13 @@ public class MapMovementScreen implements Screen {
     }
 
     private void handelInput(float dt){
+
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            Gdx.app.log(TAG,"Zoom before space: " + camera.zoom);
+            camera.zoom += 0.02;
+            camera.update();
+            Gdx.app.log(TAG,"New Zoom: " + camera.zoom);
+        }
 
         if(Gdx.input.isKeyPressed(Input.Keys.UP)) {
             player.b2Body.applyLinearImpulse(new Vector2(0, 10f), player.b2Body.getWorldCenter(), true);
@@ -162,7 +252,8 @@ public class MapMovementScreen implements Screen {
         mapRenderer.render();
 
 
-        b2dr.render(world, camera.combined);
+        //this draws the lines to show the areas of collisions for debugging
+        //b2dr.render(world, camera.combined);
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
@@ -176,14 +267,7 @@ public class MapMovementScreen implements Screen {
     @Override
     public void resize(int width, int height) {
 
-        float x;
-        int previousWidth = (int) camera.viewportWidth;
-
-        camera.viewportWidth = width;
-        camera.viewportHeight = height;
-        x = mapWidth / camera.viewportWidth;
-        camera.zoom = x;
-        camera.update();
+        gamePort.update(width,height);
     }
 
     @Override

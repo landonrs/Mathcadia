@@ -18,8 +18,12 @@ public class MapCharacter extends Sprite {
     public World world;
     public Body b2Body;
     public MapMovementScreen screen;
+    public BodyDef bdef;
 
     private float stateTimer;
+
+    //this is used when we first start the game to place the character in the correct position
+    private boolean startingPosition;
 
 
     private TextureRegion stand;
@@ -27,7 +31,8 @@ public class MapCharacter extends Sprite {
     public MapCharacter(MapMovementScreen screen){
 
         this.screen = screen;
-        world = screen.getWorld();
+
+        startingPosition = true;
 
         Texture playerImage = new Texture(Gdx.files.internal("map_characters/chrom.png"));
         stand = new TextureRegion(playerImage, 0, 0, 32, 32);
@@ -37,6 +42,7 @@ public class MapCharacter extends Sprite {
         setBounds(0,0, 32, 32);
         setRegion(stand);
 
+
     }
 
     public void update(float dt){
@@ -45,18 +51,23 @@ public class MapCharacter extends Sprite {
     }
 
     public void defineCharacter() {
-        BodyDef bdef = new BodyDef();
+        bdef = new BodyDef();
+        world = screen.getWorld();
 
-        bdef.position.set(MapHandler.getPlayerPosition().x, MapHandler.getPlayerPosition().y);
-        Gdx.app.log(Mathcadia.TAG, "Player x: "  + bdef.position.x);
-        Gdx.app.log(Mathcadia.TAG, "Player y: "   + bdef.position.y);
+        if(startingPosition) {
+            bdef.position.set(MapHandler.getPlayerPosition().x, MapHandler.getPlayerPosition().y);
+            startingPosition = false;
+        }
+        else
+            bdef.position.set(MapHandler.movePlayerToNextRoom(Mathcadia.getMaps().getDoorTransition()));
+        /*Gdx.app.log(Mathcadia.TAG, "Player x: "  + bdef.position.x);
+        Gdx.app.log(Mathcadia.TAG, "Player y: "   + bdef.position.y);*/
         bdef.type = BodyDef.BodyType.DynamicBody;
-        bdef.gravityScale = 0;
         b2Body = world.createBody(bdef);
 
         FixtureDef fdef = new FixtureDef();
         CircleShape shape = new CircleShape();
-        shape.setRadius(.5f);
+        shape.setRadius(3f);
         fdef.filter.categoryBits = Mathcadia.PLAYER_BIT;
         fdef.filter.maskBits = Mathcadia.DOOR_BIT | Mathcadia.WALL_BIT;
 

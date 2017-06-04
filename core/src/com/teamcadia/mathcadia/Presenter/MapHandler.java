@@ -1,5 +1,6 @@
 package com.teamcadia.mathcadia.Presenter;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -7,6 +8,7 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.objects.TiledMapTileMapObject;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.teamcadia.mathcadia.Mathcadia;
 import com.teamcadia.mathcadia.Model.WorldMap;
 
@@ -20,8 +22,18 @@ import static com.badlogic.gdx.utils.JsonValue.ValueType.object;
 public class MapHandler {
 
     private static WorldMap maps;
+    public static int currentRoomIndex;
+    //these rectangles keep track of door locations so we can change rooms
+    private static ArrayList<Rectangle> doors;
+    private static ArrayList<Rectangle> rooms;
 
-    public static TiledMap loadMap(int mapIndex){
+    public static int previousRoomIndex;
+
+    private static boolean switchingMaps;
+
+
+    public static TiledMap loadMap(int mapIndex, boolean previousMap){
+
         maps = Mathcadia.getMaps();
 
         String mapName = maps.getTiledBackgrounds().get(mapIndex);
@@ -31,7 +43,19 @@ public class MapHandler {
         //now update the current map on our world map for saving purposes
         maps.setCurrentMap(LoadedMap);
 
+        if(previousMap) {
+            currentRoomIndex = previousRoomIndex;
+            switchingMaps = true;
+        }
+        else
+            currentRoomIndex = 0;
+
+
         return LoadedMap;
+    }
+
+    public static void setVariables(){
+        rooms = maps.getRooms();
     }
 
     /** Checks the current map for the player object layer and returns his position
@@ -44,25 +68,33 @@ public class MapHandler {
         TiledMap map = Mathcadia.getMaps().getCurrentMap();
 
         //find the player rectangle object and return its position
-        MapObject playerLocation = map.getLayers().get("Player").getObjects().getByType(RectangleMapObject.class).first();
-        Rectangle playerRect = ((RectangleMapObject) playerLocation).getRectangle();
+            MapObject playerLocation = map.getLayers().get("Player").getObjects().getByType(RectangleMapObject.class).first();
+            Rectangle playerRect = ((RectangleMapObject) playerLocation).getRectangle();
+
 
 
         return new Vector2(playerRect.getX(), playerRect.getY());
 
     }
 
-    public static Vector2 movePlayerToNextRoom(int doorNum, ArrayList<Rectangle> doors){
-
-        //haven't written code for last south door yet, so it does nothing
-        if(doorNum == 7)
-            return null;
+    public static Vector2 movePlayerToNextRoom(int doorNum){
 
         Vector2 playerPosition;
         //keep track of the proper array index with this variable
         int doorIndex = doorNum - 1;
-        //if even number door, move to the next occurring door in the array
-        if(doorNum % 2 != 0){
+
+        //when we load the next map in our list we pass in the number 0, place us next to first door in array
+        if(doorNum == 0) {
+            playerPosition = new Vector2(doors.get(doorNum).getX() , doors.get(doorNum).getY() - 32);
+        }
+
+        //when we load the previous map we pass the size of the door array
+        else if(doorNum == doors.size()){
+            playerPosition = new Vector2((doors.get(doorIndex).getX()), doors.get(doorIndex).getY() + 32);
+        }
+
+        //if odd number door, move to the next occurring door in the array
+        else if(doorNum % 2 != 0){
             //if the door's width is 16, we know the next door is facing East. Move the player to the right of the door
             if(doors.get(doorIndex).getWidth() == 16)
             playerPosition = new Vector2(doors.get(doorIndex + 1).getX() + 32, doors.get(doorIndex + 1).getY() ) ;
@@ -70,7 +102,7 @@ public class MapHandler {
             else
                 playerPosition = new Vector2((doors.get(doorIndex + 1).getX()), doors.get(doorIndex + 1).getY() - 32);
         }
-        //if the door is odd numbered, move to previous door in our array
+        //if the door is even numbered, move to previous door in our array
         else
             //if the door's width is 16, we know the previous door is facing West. Move the player to the left of the door
             if(doors.get(doorIndex).getWidth() == 16)
@@ -86,17 +118,39 @@ public class MapHandler {
      *
      * @return Vector2 for cameraPosition
      */
-    public static Vector2 getCameraPosition(int roomIndex){
+    public static Vector3 getCameraPosition(){
         //get the current room from current map
-        TiledMap map = Mathcadia.getMaps().getCurrentMap();
-
-
-        //find the player rectangle object and return its position
-        MapObject roomLocation = map.getLayers().get("Rooms").getObjects().getByType(RectangleMapObject.class).get(roomIndex);
-        Rectangle roomRect = ((RectangleMapObject) roomLocation).getRectangle();
+        Rectangle roomRect = Mathcadia.getMaps().getCurrentRoom();
 
         //return the center of the rectangle
-        return new Vector2(roomRect.getX() + roomRect.getWidth() / 2, roomRect.getY() + roomRect.getHeight() / 2);
+        return new Vector3(roomRect.getX() , roomRect.getY(), 0);
+    }
+
+    public static float getCameraZoom(float mapWidth, float mapHeight){
+        //get the current width and height of screen
+        float w = Gdx.graphics.getWidth();
+        float h = Gdx.graphics.getHeight();
+        //this will hold our zoom amount
+        float zoom;
+
+        //if the width is smaller than the height we will divide by the width
+        if(w < h) {
+
+            if (mapWidth < mapHeight)
+                zoom = mapHeight / w;
+            else
+                zoom = mapWidth / w;
+        }
+        else {
+
+            if (mapWidth < mapHeight)
+                zoom = mapHeight / h;
+            else
+                zoom = mapWidth / h;
+        }
+
+        return zoom;
+
     }
 
 
@@ -110,4 +164,42 @@ public class MapHandler {
 
 
     }
+
+    public static Vector3 moveCamera(int doorNum){
+        //if switching maps do not change the current room number, just move the camera
+       if(switchingMaps){
+           switchingMaps = false;
+           return getCameraPosition();
+       }
+
+        int doorIndex = doorNum - 1;
+        //if the door object has a height of 25, change the room index and move the camera to the next room
+        if(doors.get(doorIndex).getHeight() == 25) {
+            currentRoomIndex++;
+        }
+        //else we move back in the array
+        else {
+            currentRoomIndex--;
+        }
+
+        //set the current room in mathcadia
+        Mathcadia.getMaps().setCurrentRoom(rooms.get(currentRoomIndex));
+
+        //get the camera position based on the new room position
+        return getCameraPosition();
+
+
+    }
+
+
+
+    public static ArrayList<Rectangle> getDoors() { return doors; }
+    public static void setDoors(ArrayList<Rectangle> doors) {
+        MapHandler.doors = doors;
+    }
+
+    public static void setRooms(ArrayList<Rectangle> rooms) {
+        MapHandler.rooms = rooms;
+    }
+
 }

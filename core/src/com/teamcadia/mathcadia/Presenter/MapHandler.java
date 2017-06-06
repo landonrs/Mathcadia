@@ -50,12 +50,12 @@ public class MapHandler {
         else
             currentRoomIndex = 0;
 
-
         return LoadedMap;
     }
 
     public static void setVariables(){
         rooms = maps.getRooms();
+        Mathcadia.getMaps().setCurrentRoom(rooms.get(currentRoomIndex));
     }
 
     /** Checks the current map for the player object layer and returns his position

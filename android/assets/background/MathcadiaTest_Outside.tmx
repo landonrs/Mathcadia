@@ -216,7 +216,7 @@
   <object id="111" x="288" y="272" width="32" height="16"/>
   <object id="112" x="208" y="368" width="64" height="16"/>
  </objectgroup>
- <objectgroup name="Rooms" visible="0">
+ <objectgroup name="Rooms">
   <object id="114" x="0" y="0" width="1007" height="526"/>
  </objectgroup>
  <objectgroup name="Doors">

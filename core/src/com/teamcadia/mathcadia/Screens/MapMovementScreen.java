@@ -124,11 +124,17 @@ public class MapMovementScreen implements Screen {
         world.step(1/60f, 6, 2);
 
 
+        //if we touch a door it will run this block
         if(Mathcadia.getMaps().getDoorTransition() > 0){
             int doorNum = Mathcadia.getMaps().getDoorTransition();
-            // if the door is equal to the last in the array, load next map
+            // if the door is equal to the last or first in the array, load next or previous map
             if(doorNum == MapHandler.getDoors().size() || doorNum == 0) {
                 constructMap();
+                mapWidth = Mathcadia.getMaps().getCurrentRoom().getWidth();
+                mapHeight = Mathcadia.getMaps().getCurrentRoom().getHeight();
+                camera.position.set(MapHandler.getCameraPosition());
+                //camera.zoom = MapHandler.getCameraZoom(mapWidth, mapHeight);
+                camera.update();
             }
             else {
                 changeRooms(doorNum);
@@ -183,8 +189,8 @@ public class MapMovementScreen implements Screen {
             Mathcadia.getMaps().setCurrentRoom(Mathcadia.getMaps().getRooms().get(MapHandler.previousRoomIndex));
         }
         else {
-            camera.setToOrtho(false, 1007, 526);
-            camera.zoom = (float) 1.007;
+            //camera.setToOrtho(false, 1007, 526);
+            //camera.zoom = (float) 1.007;
         }
 
         Gdx.app.log(TAG,"Loading map");

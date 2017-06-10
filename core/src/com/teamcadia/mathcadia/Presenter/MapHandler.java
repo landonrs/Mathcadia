@@ -17,7 +17,8 @@ import java.util.ArrayList;
 import static com.badlogic.gdx.utils.JsonValue.ValueType.object;
 
 /**
- * Created by Richardo on 5/22/2017.
+ * handles the logic for transitions between rooms and maps
+ *
  */
 public class MapHandler {
 
@@ -32,6 +33,12 @@ public class MapHandler {
     private static boolean switchingMaps;
 
 
+    /** uses the map loader to create the map object and returns it to the {@link com.teamcadia.mathcadia.Screens.MapMovementScreen}
+     *
+     * @param mapIndex tells us which map to load
+     * @param previousMap determines which door we are entering
+     * @return
+     */
     public static TiledMap loadMap(int mapIndex, boolean previousMap){
 
         maps = Mathcadia.getMaps();
@@ -43,6 +50,7 @@ public class MapHandler {
         //now update the current map on our world map for saving purposes
         maps.setCurrentMap(LoadedMap);
 
+        //if we walk into previous map, our current room will be the last room we were in on the previous map
         if(previousMap) {
             currentRoomIndex = previousRoomIndex;
             switchingMaps = true;
@@ -53,6 +61,9 @@ public class MapHandler {
         return LoadedMap;
     }
 
+    /** for now it sets our list of rooms, later it will initialize any more variables we need
+     *
+     */
     public static void setVariables(){
         rooms = maps.getRooms();
         Mathcadia.getMaps().setCurrentRoom(rooms.get(currentRoomIndex));
@@ -77,6 +88,10 @@ public class MapHandler {
 
     }
 
+    /** Checks our tiled map door objects and determines where to move our player object
+     * @param doorNum
+     * @return
+     */
     public static Vector2 movePlayerToNextRoom(int doorNum){
 
         Vector2 playerPosition;
@@ -114,7 +129,7 @@ public class MapHandler {
         return playerPosition;
     }
 
-    /** Finds the current room rectangle position and returns either the points for the camera's center or zoom factor
+    /** Finds the current room rectangle position and returns the points for the camera's center
      *
      * @return Vector2 for cameraPosition
      */
@@ -126,6 +141,12 @@ public class MapHandler {
         return new Vector3(roomRect.getX() , roomRect.getY(), 0);
     }
 
+    /** determines how far away to set the camera's zoom so the entire room will fit on screen
+     *
+     * @param mapWidth
+     * @param mapHeight
+     * @return the zoom factor
+     */
     public static float getCameraZoom(float mapWidth, float mapHeight){
         //get the current width and height of screen
         float w = Gdx.graphics.getWidth();
@@ -154,6 +175,10 @@ public class MapHandler {
     }
 
 
+    /** converts our object data into a number that we can use to determine what room we are in
+     *
+     * @param userData the label we place on each door to give it a unique ID
+     */
     public static void switchRooms(Object userData) {
 
         //get the integer out of the data
@@ -165,6 +190,11 @@ public class MapHandler {
 
     }
 
+    /** moves through our array of rooms and finds the current one the player is located in
+     *
+     * @param doorNum
+     * @return
+     */
     public static Vector3 moveCamera(int doorNum){
         //if switching maps do not change the current room number, just move the camera
        if(switchingMaps){

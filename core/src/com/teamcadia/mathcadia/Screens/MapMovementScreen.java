@@ -30,9 +30,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 /**
- * Created by Richardo on 5/22/2017.
+ * contains the logic for all map visualization and movement
  */
 public class MapMovementScreen implements Screen {
+
 
     private Mathcadia game;
     public final String TAG = "mathTag";
@@ -40,11 +41,13 @@ public class MapMovementScreen implements Screen {
     //Texture atlas for accessing textures
     private TextureAtlas atlas;
 
+    //the camera determines what is displayed on screen
+    //the viewport determines how the window is formatted to fit on the screen
     private OrthographicCamera camera;
     private StretchViewport gamePort;
     private Hud hud;
 
-    private TmxMapLoader mapLoader;
+    //the map and renderer are used to display our tiled map on the screen
     private TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
 
@@ -77,12 +80,11 @@ public class MapMovementScreen implements Screen {
 
     }
 
+    /** this method is called whenever we set the MapMovementScreen as the main screen of the game
+     * @since June 9 2017
+     */
     @Override
     public void show() {
-
-        float w = Gdx.graphics.getWidth();
-        float h = Gdx.graphics.getHeight();
-
 
         //load the map
         map = MapHandler.loadMap(1, false);
@@ -91,8 +93,10 @@ public class MapMovementScreen implements Screen {
 
         //create the objects in tbe map
         worldCreator = new MapObjectCreator(this);
+        //set the contact listener for collisions
         world.setContactListener(new WorldContactListener());
 
+        //here we find the size of the current room rectangle and use the height and width to format our camera
         mapWidth = Mathcadia.getMaps().getCurrentRoom().getWidth();
         mapHeight = Mathcadia.getMaps().getCurrentRoom().getHeight();
         Gdx.app.log(TAG, "Map width: " + mapWidth);
@@ -108,19 +112,29 @@ public class MapMovementScreen implements Screen {
         camera.update();
 
 
+        //add player to the map
         player = new MapCharacter(this);
 
         //initialize the variables for our MapHandler
         MapHandler.setVariables();
 
+
+        //our viewport will be a stretchviewport and be applied to this screen
         gamePort = new StretchViewport(1000,510,camera);
         gamePort.apply();
 
     }
 
+
+    /** called every cycle to update the player and our camera position
+     * @since v1.0
+     * @param dt the current game time
+     */
     public void update(float dt){
+        //check for player input
         handelInput(dt);
 
+        //runs the movement simulation
         world.step(1/60f, 6, 2);
 
 
@@ -136,6 +150,7 @@ public class MapMovementScreen implements Screen {
                 //camera.zoom = MapHandler.getCameraZoom(mapWidth, mapHeight);
                 camera.update();
             }
+            //else just change the camera to the next room
             else {
                 changeRooms(doorNum);
             }
@@ -145,6 +160,11 @@ public class MapMovementScreen implements Screen {
 
     }
 
+    /**changes the camera position and zoom to match the size and location of the next room
+     *
+     * @since v1.0
+     * @param doorNum
+     */
     private void changeRooms(int doorNum){
         movePlayer(doorNum);
         //move the camera and update its position
@@ -156,6 +176,10 @@ public class MapMovementScreen implements Screen {
         camera.update();
     }
 
+    /** loads the next map and creates all the related objects
+     *
+     * @since v1.0
+     */
     private void constructMap(){
         boolean previousMap = false;
 
@@ -188,10 +212,7 @@ public class MapMovementScreen implements Screen {
             //if moving into the previous map, get the index of the last room we were in and set it as the current room
             Mathcadia.getMaps().setCurrentRoom(Mathcadia.getMaps().getRooms().get(MapHandler.previousRoomIndex));
         }
-        else {
-            //camera.setToOrtho(false, 1007, 526);
-            //camera.zoom = (float) 1.007;
-        }
+
 
         Gdx.app.log(TAG,"Loading map");
 
@@ -201,6 +222,7 @@ public class MapMovementScreen implements Screen {
         if(previousMap){
             changeRooms(Mathcadia.getMaps().getDoorTransition());
         }
+        //reset our door transition since we are no longer switching rooms
         Mathcadia.getMaps().setDoorTransition(0);
     }
 
@@ -273,6 +295,7 @@ public class MapMovementScreen implements Screen {
     @Override
     public void resize(int width, int height) {
 
+        //when we resize we simply stretch the image using the viewport
         gamePort.update(width,height);
     }
 
